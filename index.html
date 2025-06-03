@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>WebRPG</title>
   <!-- 載入 Phaser 3 遊戲框架 -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/phaser/3.80.1/phaser.min.js"></script>
@@ -11,24 +11,24 @@
 </head>
 <body>
   <!-- 遊戲畫面容器，Phaser 會自動將 canvas 加入此處 -->
-  <div id="game-container" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1;"></div>
+  <div id="game-container" class="disable-selection"></div>
 
   <!-- 開發者工具視窗 -->
-  <div id="dev-tools" class="expanded" style="z-index: 1000;">
+  <div id="dev-tools" class="expanded" role="region" aria-label="開發者工具面板">
     <!-- 最小化/展開按鈕，固定於右上角 -->
-    <button id="minimize-dev-tools" title="摺疊/展開">-</button>
-    <div class="dev-title" style="height: 32px; line-height: 32px;">開發者工具</div>
+    <button id="minimize-dev-tools" title="摺疊/展開" aria-label="切換開發者工具可見性">-</button>
+    <div class="dev-title">開發者工具</div>
     <div class="dev-content">
       <div class="button-row button-row-flex">
-        <button id="toggle-debug">切換除錯模式</button>
-        <button id="reset-game">重置遊戲</button>
-        <button id="generate-tunnel-maze">生成通道型迷宮</button>
-        <button id="generate-random-maze">生成隨機分佈型迷宮</button>
+        <button id="toggle-debug" aria-label="切換除錯模式">切換除錯模式</button>
+        <button id="reset-game" aria-label="重置遊戲狀態">重置遊戲</button>
+        <button id="generate-tunnel-maze" aria-label="生成通道型迷宮地圖">生成通道型迷宮</button>
+        <button id="generate-random-maze" aria-label="生成隨機分佈型迷宮地圖">生成隨機分佈型迷宮</button>
       </div>
       <!-- 日誌區域與複製按鈕 -->
       <div id="log-container">
-        <div id="log"></div>
-        <button id="copy-log">複製</button>
+        <div id="log" role="log" aria-live="polite"></div>
+        <button id="copy-log" aria-label="複製日誌內容">複製</button>
       </div>
     </div>
   </div>

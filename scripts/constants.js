@@ -31,3 +31,15 @@ export const PATHFINDING_SETTINGS = {
  * @type {number}
  */
 export const MAP_WRAP_BUFFER = 48;
+
+/**
+ * 網格系統尺寸 (像素/網格單位)
+ * @type {number}
+ */
+export const GRID_SIZE = 32;
+
+/**
+ * 移動校準容錯範圍
+ * @type {number}
+ */
+export const MOVEMENT_TOLERANCE = 3.2; // 32px網格尺寸的10%
