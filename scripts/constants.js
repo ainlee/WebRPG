@@ -30,4 +30,20 @@ export const PATHFINDING_SETTINGS = {
  * 地圖循環邊界緩衝區
  * @type {number}
  */
+<<<<<<< HEAD
 export const MAP_WRAP_BUFFER = 48;
+=======
+export const MAP_WRAP_BUFFER = 48;
+
+/**
+ * 網格系統尺寸 (像素/網格單位)
+ * @type {number}
+ */
+export const GRID_SIZE = 32;
+
+/**
+ * 移動校準容錯範圍
+ * @type {number}
+ */
+export const MOVEMENT_TOLERANCE = 3.2; // 32px網格尺寸的10%
+>>>>>>> f9f5766 (first commit)

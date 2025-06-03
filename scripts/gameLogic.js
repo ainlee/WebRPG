@@ -1,13 +1,34 @@
+<<<<<<< HEAD
 'use strict';
 
+=======
+>>>>>>> f9f5766 (first commit)
 import {
   BASE_MOVEMENT_SPEED,
   FAULT_TOLERANCE_RADIUS,
   PATHFINDING_SETTINGS
 } from './constants.js';
 
+<<<<<<< HEAD
 // 初始設定
 export let tileSize = 48;
+=======
+export let tileSize = 48;
+
+export function normalizePosition(player, input) {
+  const gridSize = player.gridSize;
+  if (gridSize <= 0) {
+    throw new Error('無效網格尺寸');
+  }
+  
+  return {
+    x: Math.round((input.x - player.position.x) / gridSize) * gridSize + player.position.x,
+    y: Math.round((input.y - player.position.y) / gridSize) * gridSize + player.position.y
+  };
+}
+// 初始設定
+const mapSize = 64;
+>>>>>>> f9f5766 (first commit)
 export let player = {
   x: 0,  // 初始位置會在後面設置
   y: 0,
@@ -16,9 +37,12 @@ export let player = {
   frame: 0,
   moving: false
 };
+<<<<<<< HEAD
 
 // 地圖尺寸改為使用單一地圖的尺寸
 const mapSize = 64;
+=======
+>>>>>>> f9f5766 (first commit)
 export let mapWidth = mapSize * tileSize;
 export let mapHeight = mapSize * tileSize;
 export let trees = [];
@@ -430,5 +454,11 @@ export function aStar(start, end, grid) {
 
   // 開放列表為空，沒有找到路徑
   return [];
+<<<<<<< HEAD
+=======
+  // 新增座標校準
+  player.x = Math.round(player.x * GRID_SIZE) / GRID_SIZE;
+  player.y = Math.round(player.y * GRID_SIZE) / GRID_SIZE;
+>>>>>>> f9f5766 (first commit)
 }
 

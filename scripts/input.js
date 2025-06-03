@@ -27,17 +27,10 @@ export function setupInput(scene) {
       if (calculatedPath && calculatedPath.length > 0) {
         path.push(...calculatedPath);
         log(`導航開始：路徑節點數 ${path.length}`, 'nav');
-        // 顯示黃色路徑點（主角層下方，depth -11）
-        if (scene && scene.add) {
-          if (!window._navDots) window._navDots = [];
-          window._navDots.forEach(dot => dot.destroy());
-          window._navDots = path.map((pt, idx) => {
-            const dot = scene.add.circle(pt.x, pt.y, tileSize/6, 0xffff00, 0.8);
-            dot.setDepth(-11); // 比主角低，比石頭低一層
-            dot.alpha = 1;
-            return dot;
-          });
-        }
+        // 新增路徑點校準
+        player.x = Math.round(player.x * GRID_SIZE) / GRID_SIZE;
+        player.y = Math.round(player.y * GRID_SIZE) / GRID_SIZE;
+        drawPath(scene, path);
       } else {
         log(`無法計算路徑至 (${targetX}, ${targetY})`, 'warning');
       }
@@ -71,4 +64,99 @@ export function setupInput(scene) {
     });
     keyboardRegistered = true;
   }
+}
+
+/**
+ * 繪製導航路徑小黃點
+ * @param {Phaser.Scene} scene - Phaser場景物件
+ * @param {Array} pathPoints - 路徑點陣列，格式為{x: number, y: number}
+ * @returns {Phaser.GameObjects.Arc[]} 建立的小黃點物件陣列
+ * @throws {TypeError} 當傳入參數類型錯誤時
+ */
+/**
+ * 繪製可互動式導航路徑標記
+ * @param {Phaser.Scene} scene - Phaser 3 場景實例
+ * @param {{x: number, y: number}[]} pathPoints - 路徑座標點陣列
+ * @returns {Phaser.GameObjects.Arc[]} 建立的圓形標記陣列
+ */
+export function drawPath(scene, pathPoints) {
+  // 基本參數驗證
+  if (!scene?.add?.circle) {
+    throw new TypeError('需要有效的 Phaser 場景物件');
+  }
+  if (!Array.isArray(pathPoints)) {
+    throw new TypeError('路徑點必須是陣列格式');
+  }
+
+  // 清理舊有標記
+  clearExistingPathMarkers();
+
+  // 若無路徑點則提前返回
+  if (pathPoints.length === 0) {
+    return [];
+  }
+
+  // 從常數檔取得設定值
+  const { PATH_COLOR, Z_INDEX } = require('./constants.js');
+  const MARKER_CONFIG = {
+    radius: 19.2,       // 96/5
+    fillColor: Number(PATH_COLOR), // 轉換為數值型別
+    alpha: 0.8,
+    depth: Z_INDEX.PATH_MARKER || 1000
+  };
+
+  // 建立新標記點
+  const newMarkers = pathPoints.map(pt => {
+    const marker = scene.add.circle(
+      pt.x,
+      pt.y,
+      MARKER_CONFIG.radius,
+      MARKER_CONFIG.fillColor,
+      MARKER_CONFIG.alpha
+    );
+    
+    // 設定顯示屬性
+    marker.setDepth(MARKER_CONFIG.depth)
+          .setAlpha(MARKER_CONFIG.alpha);
+
+    return marker;
+  });
+
+  // 設定互動事件
+  setupMarkerInteractions(newMarkers);
+
+  // 儲存全域參考
+  window._navDots = newMarkers;
+  return newMarkers;
+}
+
+/**
+ * 清除現有的路徑標記
+ */
+function clearExistingPathMarkers() {
+  if (Array.isArray(window._navDots)) {
+    window._navDots.forEach(marker => {
+      if (marker.destroy) {
+        marker.destroy();
+      }
+    });
+    window._navDots = null;
+  }
+}
+
+/**
+ * 設定標記點互動功能
+ * @param {Phaser.GameObjects.Arc[]} markers - 標記點陣列
+ */
+/**
+ * 設定標記點互動功能
+ * @param {Phaser.GameObjects.Arc[]} markers - 標記點陣列
+ */
+function setupMarkerInteractions(markers) {
+  markers.forEach(marker => {
+    marker
+      .setInteractive({ useHandCursor: true })
+      .on('pointerover', () => marker.setAlpha(1.0))
+      .on('pointerout', () => marker.setAlpha(0.8));
+  });
 }

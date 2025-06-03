@@ -2,8 +2,26 @@
 
 ## 緊急處理項目 (48小時內)
 - [ ] 新增字體授權聲明頁面
+<<<<<<< HEAD
 - [ ] 標記16_Pixel素材為待驗證狀態
 - [ ] 建立基礎單元測試框架
+=======
+- [x] 標記16_Pixel素材為待驗證狀態
+   完成時間：2025/6/3 16:52
+   修改內容：
+   - 在images/16_Pixel-Assets_Pack-Demo/Hello.txt加入驗證狀態標記
+   相關文件：
+   - images/16_Pixel-Assets_Pack-Demo/Hello.txt
+   - spec.md 第12節「第三方資源管理規範」
+- [x] 建立基礎單元測試框架
+   完成時間：2025/6/3 16:59
+   修改內容：
+   - 新增 calibration.test.js 測試檔案
+   - 實作位置校準模組單元測試
+   相關文件：
+   - scripts/calibration.test.js
+   - scripts/constants.js 第45行容錯率設定
+>>>>>>> f9f5766 (first commit)
 
 ## 高優先級技術債
 - [ ] 實作戰鬥系統基礎框架（combat.js） ※影響度：★★★★☆
@@ -33,4 +51,23 @@
 ## 代碼品質提升
 - [ ] 提升註解覆蓋率至70%以上
 - [ ] 實作程式碼風格檢查工具
+<<<<<<< HEAD
 - [ ] 重構新舊動畫系統並存問題
+=======
+## 視覺效果優化
+- [x] 恢復導航軌跡提示 - 2025/6/3
+- [ ] 重構新舊動畫系統並存問題
+# WebRPG 專案任務清單  
+## 已完成項目  
+- [x] 修正 index.html 第17行內聯樣式問題  
+  完成時間：2025/6/3 15:25  
+  修改內容：  
+  - 移除 \<div id="dev-tools"\> 的 style 屬性  
+  - 新增 ARIA 角色屬性(role="region", aria-label="開發者工具面板")  
+  - 同步更新 styles.css 的 z-index 定義  
+  相關文件：  
+  - index.html 第17行  
+  - styles.css 第41行  
+  - spec.md 第45節「可訪問性規範」
+- [x] 恢復導航軌跡提示（完成於 v1.2.3）
+>>>>>>> f9f5766 (first commit)
