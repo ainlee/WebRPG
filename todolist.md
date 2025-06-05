@@ -24,6 +24,16 @@
 - ~~[ ] 開發任務日誌UI組件~~ 改為使用Phaser內建組件
 - [ ] 實作ECS架構核心模組 ※技術缺口
 
+## 圖形系統優化
+- [x] 實作Canvas粒子系統 ※影響度：★★★☆
+   完成時間：2025/6/5
+   修改內容：
+   - 新增ParticleSystem核心類別
+   - 整合至ECS架構
+   相關文件：
+   - scripts/graphics.js 第45-89行
+   - spec.md 第3.5節「粒子系統規範」
+
 ## 自動導航模組任務進度
 - [x] 新增A*算法v2.1技術規範
 - [x] 定義移動速度參數範圍(2.5m/s ±20%)
@@ -47,15 +57,14 @@
 - [ ] 提升註解覆蓋率至70%以上
 - [ ] 實作程式碼風格檢查工具
 - [ ] 重構新舊動畫系統並存問題
-# WebRPG 專案任務清單  
-## 已完成項目  
-- [x] 修正 index.html 第17行內聯樣式問題  
-  完成時間：2025/6/3 15:25  
-  修改內容：  
-  - 移除 \<div id="dev-tools"\> 的 style 屬性  
-  - 新增 ARIA 角色屬性(role="region", aria-label="開發者工具面板")  
-  - 同步更新 styles.css 的 z-index 定義  
-  相關文件：  
-  - index.html 第17行  
-  - styles.css 第41行  
+## 已完成項目
+- [x] 修正 index.html 第17行內聯樣式問題
+  完成時間：2025/6/3 15:25
+  修改內容：
+  - 移除 \<div id="dev-tools"\> 的 style 屬性
+  - 新增 ARIA 角色屬性(role="region", aria-label="開發者工具面板")
+  - 同步更新 styles.css 的 z-index 定義
+  相關文件：
+  - index.html 第17行
+  - styles.css 第41行
   - spec.md 第45節「可訪問性規範」

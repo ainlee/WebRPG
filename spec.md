@@ -1,5 +1,11 @@
 # WebRPG 專案規格書
 ## 版本更新記錄
+### v1.2.0 [2025-06-05]
+- 新增校準模組技術規範
+- 整合TypeDoc API文件系統
+- 更新Mermaid架構圖
+- 驗證資產引用路徑一致性
+
 ### v1.1.0 [2025-06-02]
 - 新增自動導航模組技術規範
 - 實作 A*算法 v2.1 改進版
@@ -16,6 +22,9 @@ flowchart TD
     A --> B[地圖生成系統]
     A --> C[角色控制系統]
     A --> D[戰鬥系統]
+    A --> M[校準系統]
+    M --> N[座標轉換模組]
+    M --> O[路徑平滑校驗]
     B --> E[隨機地圖生成]
     B --> F[地圖連通性設置]
     C --> G[玩家移動控制]
@@ -138,6 +147,65 @@ sequenceDiagram
     Navigation->>+PathSmoother: 申請平滑處理
     PathSmoother-->>-Navigation: 返回貝茲曲線
     Navigation-->>-Player: 提供可行路徑
+```
+
+## 模組類別圖
+
+```mermaid
+classDiagram
+    class ParticleSystem {
+        +init(config)
+        +emit(particleCount)
+        +update(deltaTime)
+    }
+    class GraphicsManager {
+        +registerParticleRenderer()
+    }
+    ParticleSystem --> GraphicsManager : 渲染請求
+    ParticleSystem --> EcsCoordinator : 註冊實體
+```
+
+```mermaid
+classDiagram
+    class ParticleSystem {
+        +init(config)
+        +emit(particleCount)
+        +update(deltaTime)
+    }
+    class GraphicsManager {
+        +registerParticleRenderer()
+    }
+    ParticleSystem --> GraphicsManager : 渲染請求
+    ParticleSystem --> EcsCoordinator : 註冊實體
+```
+
+## 粒子系統交互流程
+```mermaid
+sequenceDiagram
+    SceneManager->>+ParticleSystem: 觸發粒子效果
+    ParticleSystem->>+ECS: 註冊粒子實體
+    ECS-->>-ParticleSystem: 實體ID
+    ParticleSystem->>+GraphicsManager: 請求渲染器
+    GraphicsManager-->>-ParticleSystem: WebGL渲染器實例
+    loop 每幀更新
+        ParticleSystem->>PhysicsEngine: 獲取空間數據
+        PhysicsEngine-->>ParticleSystem: 碰撞資訊
+        ParticleSystem->>GraphicsManager: 提交粒子狀態
+    end
+
+## 粒子系統時序圖
+```mermaid
+sequenceDiagram
+    SceneManager->>+ParticleSystem: 觸發粒子效果
+    ParticleSystem->>+ECS: 註冊粒子實體
+    ECS-->>-ParticleSystem: 實體ID
+    ParticleSystem->>+GraphicsManager: 請求渲染器
+    GraphicsManager-->>-ParticleSystem: WebGL渲染器實例
+    loop 每幀更新
+        ParticleSystem->>PhysicsEngine: 獲取空間數據
+        PhysicsEngine-->>ParticleSystem: 碰撞資訊
+        ParticleSystem->>GraphicsManager: 提交粒子狀態
+    end
 ```
 
 ## 檔案架構及用途
