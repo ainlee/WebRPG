@@ -9,6 +9,7 @@
     "test:particles": "NODE_OPTIONS='--experimental-vm-modules' vitest scripts/particleSystem.test.js",
     "test:position": "NODE_OPTIONS='--experimental-vm-modules' vitest scripts/positionCalibration.test.js",
     "build": "webpack --config webpack.config.js --node-env=production",
+    "preview": "serve dist -p 5501",
     "docs": "typedoc --out docs/api scripts/*.js --plugin typedoc-plugin-markdown",
     "lint": "eslint scripts/**/*.js",
     "dev": "vite --port=5500"
@@ -24,7 +25,8 @@
   "dependencies": {
     "craftyjs": "^0.9.0",
     "howler": "^2.2.4",
-    "phaser": "^3.80.1"
+    "phaser": "^3.80.1",
+    "serve": "^14.2.1"
   },
   "devDependencies": {
     "@babel/core": "^7.23.2",

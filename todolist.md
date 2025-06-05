@@ -19,6 +19,14 @@
    - scripts/constants.js 第45行容錯率設定
 
 ## 高優先級技術債
+- [x] 修正 npm run preview 指令缺失問題 ※影響度：★★★☆
+   完成時間：2025/6/5
+   修改內容：
+   - 在 package.json 添加 preview 指令
+   - 安裝 serve@14.2.1 套件
+   相關文件：
+   - package.json 第12行
+   - webpack.config.js
 - [ ] 實作戰鬥系統基礎框架（combat.js） ※影響度：★★★★☆
 - [ ] 完成存檔系統加密功能（save.js） ※工程規模：▲▲▲△△
 - ~~[ ] 開發任務日誌UI組件~~ 改為使用Phaser內建組件
