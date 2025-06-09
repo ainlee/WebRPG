@@ -12,6 +12,38 @@
 - 增加路徑平滑處理機制
 - 定義碰撞容錯全域參數
 
+## 歷史版本追溯
+### 原始專案核心設定 (v1.2.3)
+```javascript
+const legacyConfig = {
+  tileSize: 48,
+  mapLayers: 3,
+  characterFrames: 16,
+  debugMode: true
+};
+```
+
+### 目錄結構升級方案
+```
+src/
+├── legacy/           # 原始程式碼保留區
+├── modern/           # 新架構實作
+└── shared/           # 共用資源與介面
+```
+
+### 事件系統整合
+```typescript
+// 兼容原始日誌系統
+interface HybridEvent extends GameEvent {
+  legacyLogId?: number;
+  version: '1.0' | '2.0';
+}
+```
+
+[原始企劃保存版本] v1.2.3
+[架構升級版本] v2.0.0-rc1
+[最後整合時間] 2025/6/9
+
 ## 專案概述
 WebRPG 是一個基於 Phaser 的網頁角色扮演遊戲專案，旨在創建一個具有地圖生成、玩家移動和導航功能的遊戲環境。該專案使用模塊化結構，將不同功能分離到多個 JavaScript 檔案中。
 
