@@ -352,6 +352,173 @@ function ensureAccessibility(map) {
   console.log("移除後障礙物總數: " + postRemoveObstacleCount);
 }
 
+import Phaser from 'phaser';
+
+// 確保Phaser全域變數可用
+if (typeof window !== 'undefined') {
+  window.Phaser = Phaser;
+}
+
+// 場景顯示模式狀態管理
+let viewMode = '2.5D';  // '2D' 或 '2.5D'
+const viewModeSettings = {
+  '2D': {
+    projectionMatrix: new Phaser.Math.Matrix4().identity(),
+    cameraZoom: 1.5,
+    depthTest: false
+  },
+  '2.5D': {
+    projectionMatrix: new Phaser.Math.Matrix4()
+      .identity()
+      .rotateX(Math.PI/4)
+      .rotateZ(Math.PI/4)
+      .scale(1, 0.5, 1),
+    cameraZoom: 1.0,
+    depthTest: true,
+    layerScale: 0.8,     // 層級縮放係數
+    shadowIntensity: 0.3 // 陰影強度
+  }
+};
+
+export function toggleViewMode(scene) {
+  viewMode = viewMode === '2D' ? '2.5D' : '2D';
+  updateViewMode(scene);
+  return viewMode;
+}
+
+function updateViewMode(scene) {
+  const settings = viewModeSettings[viewMode];
+  
+  scene.cameras.main.setProjectionMatrix(settings.projectionMatrix);
+  scene.cameras.main.setZoom(settings.cameraZoom);
+  
+  const gl = scene.game.renderer.gl;
+  if (settings.depthTest) {
+    gl.enable(gl.DEPTH_TEST);
+    gl.depthFunc(gl.LEQUAL);
+  } else {
+    gl.disable(gl.DEPTH_TEST);
+  }
+}
+
+
+// 初始化等角投影系統
+export function initIsometric(scene) {
+  updateViewMode(scene);
+  // 確保Phaser已正確加載
+  if (!Phaser || !Phaser.Plugins) {
+    throw new Error('Phaser尚未正確初始化');
+  }
+  
+  // 啟用WebGL混合模式
+  const gl = scene.game.renderer.gl;
+  gl.enable(gl.BLEND);
+  gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+}
+
+// 等角投影轉換函式
+function calculateScreenPosition(obj) {
+  return scene.cameras.main.getWorldPoint(
+    obj.x, obj.y, obj.z || 0
+  );
+}
+
+// 新版場景渲染函式
+// 漸層背景系統
+function createGradientBackground(scene) {
+  const gradient = scene.textures.createCanvas('gradient', 800, 600);
+  const ctx = gradient.getContext();
+  const grd = ctx.createLinearGradient(0, 0, 0, 600);
+  grd.addColorStop(0, '#87CEEB'); // 天空藍
+  grd.addColorStop(1, '#228B22'); // 森林綠
+  ctx.fillStyle = grd;
+  ctx.fillRect(0, 0, 800, 600);
+  gradient.refresh();
+  return scene.add.sprite(400, 300, 'gradient').setDepth(-1000);
+}
+
+// 動態陰影系統
+function createObjectShadow(scene, obj) {
+  const shadow = scene.add.isoSprite(
+    obj.x + 8,
+    obj.y + 8,
+    0,
+    'shadow'
+  )
+  .setAlpha(viewModeSettings[viewMode].shadowIntensity)
+  .setDepth(obj.depth - 1)
+  .setScale(1.2, 1.2)
+  .setTint(0x000000);
+  shadow.originalY = obj.y;
+  return shadow;
+}
+
+// 圖層管理系統
+const sceneLayers = {
+  background: [],
+  terrain: [],
+  objects: [],
+  characters: [],
+  effects: []
+};
+
+export function drawScene(scene, gameObjects) {
+  // 繪製漸層背景
+  if (!scene.background) {
+    scene.background = createGradientBackground(scene);
+  }
+  // 根據相機投影矩陣自動計算深度值
+  gameObjects.forEach(obj => {
+    const clipPos = scene.cameras.main.getClipPosition(obj);
+    obj.setDepth(clipPos[2]); // 使用Z軸投影值作為深度
+  });
+
+  // 分層渲染
+  Object.values(sceneLayers).forEach(layer => {
+    layer.forEach(obj => obj.destroy());
+  });
+  sceneLayers.background = [scene.background];
+  
+  // 使用物件池優化精靈重用
+  const spritePool = scene.isoSpritePool || (scene.isoSpritePool = []);
+  
+  // 按深度值排序後更新精靈狀態
+  gameObjects.sort((a, b) => a.depth - b.depth)
+    .forEach((obj, index) => {
+      let sprite = spritePool[index];
+    const screenPos = isoTransform.call(scene, obj);
+    
+    if (!sprite) {
+      sprite = scene.add.isoSprite(0, 0, 0, obj.texture)
+        .setVisible(false);
+      spritePool.push(sprite);
+    }
+
+    sprite
+      .setPosition(obj.x, obj.y, obj.z || 0)
+      .setScale(obj.scaleX || 1, obj.scaleY || 1)
+      .setDepth(screenPos.y)
+      .setTexture(obj.texture)
+      .setVisible(true);
+
+    // 添加陰影效果
+    if (obj.castShadow) {
+      const shadow = scene.add.isoSprite(
+        obj.x + 8,
+        obj.y + 8,
+        0,
+        'shadow'
+      ).setAlpha(0.3).setDepth(screenPos.y - 1);
+      spritePool.push(shadow);
+    }
+  });
+
+  // 隱藏未使用的精靈
+  for (let i = sortedObjects.length; i < spritePool.length; i++) {
+    spritePool[i].setVisible(false);
+  }
+}
+
 // 取得玩家初始位置（保持在中心點）
 export function getPlayerStartPos(tileSize, mapSize) {
   const center = Math.floor(mapSize / 2);
@@ -366,7 +533,7 @@ export function calculateMapData(mapX, mapY, seed) {
   const mapSeed = seed + mapX * 10000 + mapY;
   return {
     seed: mapSeed,
-    difficulty: Math.min(Math.abs(mapX) + Math.abs(mapY), 10), // 根據距離計算難度
-    isSpecial: ((Math.abs(mapX) + Math.abs(mapY)) % 5) === 0 // 每隔5個地圖有特殊房間
+    difficulty: Math.min(Math.abs(mapX) + Math.abs(mapY), 10),
+    isSpecial: ((Math.abs(mapX) + Math.abs(mapY)) % 5) === 0
   };
 }
