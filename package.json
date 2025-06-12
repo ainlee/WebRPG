@@ -28,6 +28,7 @@
   "license": "ISC",
   "description": "Web-based RPG game engine",
   "dependencies": {
+    "cannon-es": "^0.20.0",
     "craftyjs": "^0.9.0",
     "gl-matrix": "^3.4.3",
     "howler": "^2.2.4",

@@ -1,5 +1,6 @@
 import { tileSize } from './gameLogic.js';
 import { colors } from './assets.js';
+import { CoordinateSystem } from './coordinateSystem.js';
 
 export function drawSprite(graphics, sprite) {
   graphics.clear();
@@ -42,11 +43,18 @@ export class PathParticleSystem {
   }
 
   emit(pathNodes) {
+    const coordSystem = new CoordinateSystem({
+      canvasWidth: 800,
+      canvasHeight: 600,
+      tileSize: tileSize
+    });
+
     for (const node of pathNodes) {
       if (this.particles.length < this.maxParticles) {
         const p = this.pool.pop() || new PathParticle(0,0);
-        p.position.x = node.x * tileSize + tileSize/2;
-        p.position.y = node.y * tileSize + tileSize/2;
+        const projected = coordSystem.projectTo2_5D(node.x, node.y, 0.5);
+        p.position.x = projected.x;
+        p.position.y = projected.y;
         p.life = 1.0;
         this.particles.push(p);
       }
@@ -105,4 +113,44 @@ export function drawLogWindow(textObj, logMessages) {
   const maxLogs = 10; // 顯示最近 10 條日誌
   const recentLogs = logMessages.slice(-maxLogs);
   textObj.setText(recentLogs.join('\n'));
+}
+/**
+ * 動態深度緩衝排序演算法
+ * @param {Array} objects 需排序的3D物件陣列
+ * @returns {Array} 按深度值降冪排序後的陣列
+ */
+function depthBufferSort(objects) {
+  return objects.sort((a, b) => {
+    const depthA = a.transform.position.z * a.scale.z;
+    const depthB = b.transform.position.z * b.scale.z;
+    return depthB - depthA; // 降冪排序
+  });
+}
+
+/**
+ * 精靈圖投影計算函式
+ * @param {Object} sprite 精靈圖物件
+ * @param {Object} lightSource 光源參數
+ * @returns {Object} 投影矩陣與陰影參數
+ */
+function calculateSpriteProjection(sprite, lightSource) {
+  const { position, size } = sprite;
+  const projectionMatrix = mat4.create();
+  const shadowIntensity = Math.min(1, lightSource.intensity / 1000);
+  
+  mat4.ortho(projectionMatrix,
+    position.x - size.width/2,
+    position.x + size.width/2,
+    position.y - size.height/2,
+    position.y + size.height/2,
+    0.1, 1000
+  );
+
+  return {
+    projectionMatrix,
+    shadowParams: {
+      intensity: shadowIntensity,
+      blurRadius: Math.sqrt(lightSource.intensity) * 0.1
+    }
+  };
 }

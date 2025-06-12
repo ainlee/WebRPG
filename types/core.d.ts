@@ -2,10 +2,25 @@
  * 核心類型定義檔
  */
 
-/** 座標介面 */
+/** 二維座標介面 */
 export interface Coordinate {
   x: number;
   y: number;
+}
+
+/** 2.5D三維座標介面 */
+export interface Coordinate3D extends Coordinate {
+  z: number;
+}
+
+/** 深度映射參數類型 */
+export interface DepthMappingConfig {
+  /** 畫布寬度 */
+  canvasWidth: number;
+  /** 畫布高度 */
+  canvasHeight: number;
+  /** 最大深度值 */
+  maxDepth?: number;
 }
 
 /** 路徑尋找設定介面 */

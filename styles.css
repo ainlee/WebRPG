@@ -402,3 +402,46 @@ canvas {
   height: 32px;
   line-height: 32px;
 }
+/* 3D投影基礎設定 */
+.projection-3d {
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  will-change: transform, opacity;
+}
+
+/* 硬體加速優化 */
+.hw-accelerate {
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  -ms-transform: translateZ(0);
+  transform: translate3d(0, 0, 0);
+}
+
+/* 層級深度管理 */
+.depth-layer-0 { z-index: 100; }
+.depth-layer-1 { z-index: 200; }
+.depth-layer-2 { z-index: 300; }
+
+/* 陰影品質設定 */
+.shadow-quality-high {
+  filter: drop-shadow(0 0 8px rgba(0,0,0,0.3));
+  --shadow-blur: 12px;
+}
+
+.shadow-quality-medium {
+  filter: drop-shadow(0 0 4px rgba(0,0,0,0.2));
+  --shadow-blur: 6px;
+}
+
+/* 投影緩衝區容器 */
+.projection-buffer {
+  contain: strict;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+/* 動態模糊效果 */
+.motion-blur {
+  transition: transform 0.05s linear;
+  filter: blur(1px);
+}
