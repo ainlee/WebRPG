@@ -352,7 +352,7 @@ function ensureAccessibility(map) {
   console.log("移除後障礙物總數: " + postRemoveObstacleCount);
 }
 
-import Phaser from 'phaser';
+import * as Phaser from 'phaser';
 
 // 確保Phaser全域變數可用
 if (typeof window !== 'undefined') {

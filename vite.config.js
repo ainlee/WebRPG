@@ -1,1 +1,13 @@
-import { defineConfig } from 'vite'; export default defineConfig({ server: { port: 5500 } })
+import { defineConfig } from 'vite'
+import path from 'path'
+
+export default defineConfig({
+  resolve: {
+    alias: {
+      // phaser路徑已通過importmap處理
+    }
+  },
+  server: {
+    port: 5500
+  }
+})

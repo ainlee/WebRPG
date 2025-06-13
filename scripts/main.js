@@ -1,4 +1,4 @@
-import Phaser from 'phaser';
+import * as Phaser from 'phaser';
 import { initializeGame, calculateGameSize } from './core.js';
 
 // 基本遊戲場景定義（測試用）
