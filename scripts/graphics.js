@@ -1,6 +1,6 @@
 import { tileSize } from './gameLogic.js';
 import { colors } from './assets.js';
-import { CoordinateSystem } from './coordinateSystem.js';
+import { CoordinateSystem } from './core/CoordinateSystem.js';
 
 export function drawSprite(graphics, sprite) {
   graphics.clear();
@@ -51,10 +51,21 @@ export class PathParticleSystem {
 
     for (const node of pathNodes) {
       if (this.particles.length < this.maxParticles) {
-        const p = this.pool.pop() || new PathParticle(0,0);
-        const projected = coordSystem.projectTo2_5D(node.x, node.y, 0.5);
-        p.position.x = projected.x;
-        p.position.y = projected.y;
+        const p = this.pool.pop() || new PathParticle(0, 0);
+        
+        // 核心座標計算
+        const logicalPos = coordSystem.project(node.x, node.y);
+        p.position.x = logicalPos.x;
+        p.position.y = logicalPos.y;
+
+        // DOM相關操作
+        if (typeof document !== 'undefined') {
+          p.element = document.createElement('div');
+          p.element.className = 'path-particle';
+          const visualPos = coordSystem.projectWithScale(node.x, node.y);
+          p.element.style.transform = `translate(${visualPos.x}px, ${visualPos.y}px) scale(${visualPos.scale})`;
+        }
+
         p.life = 1.0;
         this.particles.push(p);
       }

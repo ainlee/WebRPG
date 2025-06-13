@@ -22,21 +22,105 @@ export class CoordinateSystem {
   }
 
   /**
-   * 2D轉2.5D坐標轉換
+   * 2D轉2.5D坐標轉換（等角投影）
    * @param {number} x X軸坐標
    * @param {number} y Y軸坐標
    * @param {number} [z=0] 深度值
    * @returns {Object} 轉換後坐標 {x, y, z}
    */
   projectTo2_5D(x, y, z = 0) {
-    const projectedX = this.projectionMatrix[0] * x + this.projectionMatrix[3] * y;
-    const projectedY = this.projectionMatrix[1] * x + this.projectionMatrix[4] * y;
+    const isoScale = 0.866; // cos(30°)
     return {
-      x: projectedX * this.tileSize,
-      y: projectedY * this.tileSize - z * 0.5 * this.tileSize,
+      x: (x - y) * isoScale * this.tileSize,
+      y: ((x + y) / 2 - z * 0.5) * isoScale * this.tileSize,
       z: z
     };
   }
+
+import { CoordinateSystem } from './core/CoordinateSystem.js';
+
+/**
+ * 等角投影轉換器類別
+ * @class
+ */
+export class IsometricProjector extends CoordinateSystem {
+  constructor(config) {
+    super(config);
+    this.tileSize = config.tileSize || 64;
+    this.isoScale = config.isoScale || 0.5;
+  }
+
+  /**
+   * 執行3D到2D等角投影轉換
+   * @param {number} x - X軸座標
+   * @param {number} y - Y軸座標
+   * @param {number} z - Z軸高度
+   * @returns {Object} 投影後座標
+   */
+  project(x, y, z) {
+    return {
+      x: (x - y) * this.tileSize * this.isoScale,
+      y: ((x + y) / 2 - z * 0.5) * this.tileSize * this.isoScale
+    };
+  }
+
+  /**
+   * 平面座標轉換（二維投影）
+   * @param {number} x - X軸座標
+   * @param {number} y - Y軸座標
+   * @returns {Object} 投影後座標
+   */
+  project2D(x, y) {
+    const angle = this.config?.angle || 30;
+    const scaleY = this.config.scaleY;
+    const depthFactor = this.config.depthFactor;
+    const rad = angle * Math.PI / 180;
+    return {
+      x: x + y * Math.cos(rad) * scaleY,
+      y: y * Math.sin(rad) * scaleY * (1 - y * depthFactor)
+    };
+  }
+  /**
+   * 建構子
+   * @param {Object} config - 視覺設定參數
+   */
+  constructor(config) {
+    this.tileSize = config.tileSize || 64;
+    this.isoScale = config.isoScale || 0.5;
+  }
+
+  /**
+   * 執行3D到2D等角投影轉換
+   * @param {number} x - X軸座標
+   * @param {number} y - Y軸座標
+   * @param {number} z - Z軸高度
+   * @returns {Object} 投影後座標
+   */
+  project(x, y, z) {
+    return {
+      x: (x - y) * this.tileSize * this.isoScale,
+      y: ((x + y) / 2 - z * 0.5) * this.tileSize * this.isoScale
+    };
+  }
+
+}
+  /**
+   * 平面座標轉換（二維投影）
+   * @param {number} x - X軸座標
+   * @param {number} y - Y軸座標
+   * @returns {Object} 投影後座標
+   */
+  project2D(x, y) {
+    const angle = this.config?.angle || 30;
+    const scaleY = this.config.scaleY;
+    const depthFactor = this.config.depthFactor;
+    const rad = angle * Math.PI / 180;
+    return {
+      x: x + y * Math.cos(rad) * scaleY,
+      y: y * Math.sin(rad) * scaleY * (1 - y * depthFactor)
+    };
+  }
+}
 
   /**
    * 更新深度緩衝
@@ -45,6 +129,7 @@ export class CoordinateSystem {
    * @param {number} depth 深度值
    */
   updateDepthBuffer(x, y, depth) {
+    const canvasWidth = this.canvasWidth;
     const canvasWidth = 800; // 明確定義畫布寬度
     const index = Math.floor(y) * canvasWidth + Math.floor(x);
     if (index >= 0 && index < this.depthBuffer.length) {

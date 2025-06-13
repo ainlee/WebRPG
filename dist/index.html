@@ -7,8 +7,8 @@
   <!-- 載入 Phaser 3 遊戲框架 -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/phaser/3.80.1/phaser.min.js"></script>
   <!-- 載入外部 CSS 樣式 -->
-  <script type="module" crossorigin src="/assets/index-COgG9Roh.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index-DZQnI3Fw.css">
+  <script type="module" crossorigin src="/assets/index-DjQXDAYC.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-Cm43Gefp.css">
 </head>
 <body>
   <!-- 遊戲畫面容器，Phaser 會自動將 canvas 加入此處 -->
@@ -23,6 +23,7 @@
       <div class="button-row button-row-flex">
         <button id="toggle-debug" aria-label="切換除錯模式">切換除錯模式</button>
         <button id="reset-game" aria-label="重置遊戲狀態">重置遊戲</button>
+        <button id="toggle-view-mode" aria-label="切換2D/2.5D模式">2D/2.5D模式</button>
         <button id="generate-tunnel-maze" aria-label="生成通道型迷宮地圖">生成通道型迷宮</button>
         <button id="generate-random-maze" aria-label="生成隨機分佈型迷宮地圖">生成隨機分佈型迷宮</button>
       </div>
@@ -35,8 +36,7 @@
   </div>
 
   <!-- 遊戲主程式 -->
-  <!-- UI 控制腳本（如最小化功能） -->
-  <script src="scripts/ui.js"></script>
+  <!-- UI 控制腳本（如最小化功能） -->
   <script>
     // 只處理複製 Log 的功能，其餘按鈕監聽由 game.js 處理
     const logDiv = document.getElementById('log');

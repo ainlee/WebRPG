@@ -6,6 +6,11 @@
 export const visualConfig = {
   // 3D投影設定
   projection: {
+    perspective: {
+      angle: 45,
+      scaleY: 0.5,
+      depthFactor: 0.02
+    },
     shadowQuality: 2, // 0=關閉, 1=低, 2=中, 3=高
     maxShadowDistance: 1000,
     shadowMapSize: 2048,
@@ -53,6 +58,11 @@ export const visualConfig = {
       enabled: false,
       radius: 0.5,
       samples: 16
+    },
+    perspectiveScale: {
+      near: 1.0,    // 近處物體原始尺寸
+      far: 0.5,     // 遠處物體最小縮放比例
+      depthFactor: 0.002 // 深度縮減係數
     }
   }
 };

@@ -51,10 +51,10 @@ graph TD
 ## 技術選型
 | 項目 | 選擇 | 理由 |
 |------|------|------|
-| 遊戲框架 | Phaser 2 | 成熟度高、社群支援豐富 |
-| 建置工具 | Webpack | 模組化支援完善 |
-| 渲染引擎 | WebGL 1.0 | 相容性考量 |
-| 測試框架 | Mocha | 靈活性高 |
+| 遊戲框架 | Phaser 3.60 | 支援WebGL2與插件系統 |
+| 建置工具 | Vite 5.0 | 快速HMR與Tree-shaking |
+| 渲染引擎 | WebGL 2.0 | 支援深度緩衝與MSAA |
+| 測試框架 | Jest 30 | 並行測試與覆蓋率分析 |
 
 ## 架構演進 (2025/6/10)
 ### 核心模組升級
@@ -191,16 +191,38 @@ graph TD
   D --> E[*.test.js]
 ```
 
-## 2.5D投影規範
-### 座標轉換公式
-screenX = (worldX - worldY) * tileWidth/2  
-screenY = (worldX + worldY) * tileHeight/2 - worldZ * elevationFactor
-
-### 深度排序規則
-```mermaid
-flowchart LR
-    Y軸位置 --> Z軸值 --> X軸位置
+## 偽3D投影規範 (v2.5.1)
+### 核心公式
+```javascript
+/**
+ * 偽3D投影計算方法
+ * @param {number} worldX - 世界座標X軸
+ * @param {number} worldY - 世界座標Y軸
+ * @param {number} [worldZ=0] - 物件高度值
+ * @returns {Object} 包含螢幕座標與深度的物件
+ */
+function projectFake3D(worldX, worldY, worldZ = 0) {
+  const screenX = (worldX - worldY) * config.tileWidth / 2;
+  const screenY = (worldX + worldY) * config.tileHeight / 2 - worldZ * config.elevation;
+  const depth = worldY + worldZ * 0.1;
+  return { screenX, screenY, depth };
+}
 ```
+
+### 渲染流程
+```mermaid
+flowchart TD
+    A[遊戲物件] --> B{投影計算}
+    B -->|x,y,z| C[深度值計算]
+    C --> D[DepthSortPlugin]
+    D --> E[Phaser渲染器]
+    E --> F[WebGL2批次渲染]
+```
+
+### 深度管理
+- 採用分層緩衝策略（10層）
+- 每幀更新時全域排序一次
+- 使用物件池模式優化排序效能
 
 ### 插件架構
 ```javascript
