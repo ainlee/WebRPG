@@ -2,13 +2,21 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8">
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>WebRPG</title>
   <!-- 載入 Phaser 3 遊戲框架 -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/phaser/3.80.1/phaser.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
   <!-- 載入外部 CSS 樣式 -->
-  <script type="module" crossorigin src="/assets/index-DjQXDAYC.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index-Cm43Gefp.css">
+  <script type="importmap">
+  {
+    "imports": {
+      "phaser": "./node_modules/phaser/dist/phaser.esm.js"
+    }
+  }
+  </script>
+  <script type="module" crossorigin src="/assets/index-DUcdCa_A.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-DaMHk88A.css">
 </head>
 <body>
   <!-- 遊戲畫面容器，Phaser 會自動將 canvas 加入此處 -->

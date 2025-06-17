@@ -58,13 +58,11 @@ export class PerspectiveManager {
     this.mode = 'Pseudo3D';
     const aspect = this.config.canvasWidth / this.config.canvasHeight;
     const fovRad = (this.config.fov * Math.PI) / 180;
-    console.debug('[3D投影] 透視參數', {
-      source: 'visualConfig.projection.perspective.angle',
-      fov: `${this.config.fov}°→${fovRad.toFixed(4)}rad`,
-      aspect,
-      near: this.config.near,
-      far: this.config.far
-    });
+
+    // 套用自訂透視投影公式
+    const { angle, scaleY, depthFactor } = visualConfig.projection.perspective;
+    const radian = (angle * Math.PI) / 180;
+    
     mat4.perspective(
       this.currentProjectionMatrix,
       fovRad,
@@ -72,8 +70,15 @@ export class PerspectiveManager {
       this.config.near,
       this.config.far
     );
-    console.debug('[3D投影] 計算結果', {
-      projectionMatrix: Array.from(this.currentProjectionMatrix).map(n => n.toFixed(4))
+    
+    // 手動調整投影矩陣增加視覺透視
+    mat4.translate(this.currentProjectionMatrix, this.currentProjectionMatrix,
+      [0, -visualConfig.projection.perspective.scaleY * 0.2, 0]);
+    mat4.rotateZ(this.currentProjectionMatrix, this.currentProjectionMatrix, radian * 0.3);
+    
+    console.debug('[3D投影] 最終矩陣', {
+      matrix: Array.from(this.currentProjectionMatrix).map(n => n.toFixed(4)),
+      appliedParams: { angle, scaleY, depthFactor }
     });
   }
 

@@ -31,6 +31,7 @@ class PathParticle {
   update() {
     this.position.x += this.velocity.x;
     this.position.y += this.velocity.y;
+    this.depth = this.position.y * 2; // 根據Y軸計算深度
     this.life -= this.decay;
     return this.life > 0;
   }

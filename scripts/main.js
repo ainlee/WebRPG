@@ -1,6 +1,7 @@
-import * as Phaser from 'phaser';
+import * as Phaser from './node_modules/phaser/dist/phaser.esm.js';
 import { initializeGame, calculateGameSize } from './core.js';
 import { PerspectiveManager } from './perspective.js';
+import { init3DScene, createViewToggleButton } from './3d-preview/sceneSetup.js';
 export const perspectiveManager = new PerspectiveManager();
 
 // 基本遊戲場景定義（測試用）
@@ -12,6 +13,8 @@ class BootScene extends Phaser.Scene {
   create() {
     this.add.image(400, 300, 'logo');
     console.log('BootScene 初始化完成');
+    init3DScene(this);
+    createViewToggleButton(this);
   }
 }
 
