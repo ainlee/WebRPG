@@ -290,3 +290,36 @@ flowchart TD
 2. 新增修改對照表
 3. 保留完整變更歷程
 4. 維護模組分工文件
+
+## gameLogic.js 模組規範 (v2.5.2)
+```javascript
+/**
+ * 戰鬥傷害計算公式
+ * @param {Object} attacker - 攻擊者屬性
+ * @param {Object} defender - 防禦者屬性
+ * @returns {number} 最終傷害值
+ */
+export function calculateDamage({ atk }, { def }) {
+  const baseDamage = atk * (Math.random() * 0.2 + 0.9) - def;
+  return Math.max(baseDamage, 1); // 確保最小傷害為1
+}
+
+// 單元測試案例
+describe('戰鬥系統', () => {
+  test('基礎傷害計算', () => {
+    expect(calculateDamage({atk: 10}, {def: 5})).toBeGreaterThan(4);
+    expect(calculateDamage({atk: 5}, {def: 10})).toBe(1);
+  });
+});
+```
+
+## 透視系統測試規格
+```mermaid
+flowchart TD
+    A[測試案例] --> B[正交投影驗證]
+    A --> C[單點透視驗證]
+    A --> D[過渡動畫流暢度]
+    B --> E[檢查投影矩陣]
+    C --> F[驗證滅點計算]
+    D --> G[幀率監測]
+```

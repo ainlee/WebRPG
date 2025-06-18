@@ -183,3 +183,37 @@ pie
 
 ## 注意事項
 ~~請勿直接刪除歷史記錄~~ ➔ 使用刪除線標示過時內容
+
+## 2025/6/18 v2.5.2 進度報告
+### 透視系統整合
+```mermaid
+sequenceDiagram
+    Player->>Renderer: 觸發視角切換
+    Renderer->>PerspectiveManager: 請求投影矩陣
+    PerspectiveManager->>Renderer: 回傳矩陣參數
+    Renderer->>WebGL: 更新著色器參數
+    WebGL->>Player: 渲染新視角畫面
+```
+
+### 效能測試數據更新
+| 測試項目          | v2.5.1 | v2.5.2 |
+|-------------------|--------|--------|
+| FPS (低負載)      | 60     | 60     |
+| FPS (高負載)      | 38     | 45     |
+| 記憶體使用峰值    | 256MB  | 210MB  |
+| 網路延遲(P99)     | 68ms   | 55ms   |
+
+### 版本更新內容
+```javascript
+// 新增透視系統測試案例
+describe('透視投影系統', () => {
+  test('應正確計算滅點座標', () => {
+    const pm = new PerspectiveManager();
+    expect(pm.getVanishingPoint()).toEqual({ x: 960, y: 540 });
+  });
+});
+```
+
+## 注意事項
+- 壓力測試需在專用伺服器環境執行
+- 透視系統暫不支援行動裝置觸控操作
