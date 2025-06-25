@@ -1,5 +1,6 @@
 import { defineConfig, mergeConfig, loadEnv } from 'vite'
 import path from 'path'
+import legacy from '@vitejs/plugin-legacy'
 
 // 通用基礎配置
 const baseConfig = {
@@ -22,7 +23,13 @@ const clientConfig = {
     exclude: ['@/server/*']
   },
   build: {
-    target: 'ESNext',
+    target: 'es2020',
+    plugins: [
+      legacy({
+        targets: ['defaults', 'not IE 11', 'iOS >= 16.4'],
+        modernPolyfills: true
+      })
+    ],
     minify: process.env.NODE_ENV === 'production' ? 'terser' : false,
     sourcemap: true,
     rollupOptions: {

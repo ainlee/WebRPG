@@ -4,11 +4,12 @@
  */
 export class PerspectiveManager {
   constructor(config) {
-    this.mode = '2D'; // 初始模式
+    const savedMode = localStorage.getItem('viewMode');
+    this.mode = (savedMode && ['2D', '2.5D'].includes(savedMode)) ? savedMode : '2D';
     this.config = {
       fov: visualConfig.projection.perspective.angle, // 從設定檔獲取FOV
-      canvasWidth: 800,  // 強制設定測試用畫布尺寸
-      canvasHeight: 600, // 與測試案例規格一致
+      canvasWidth: config.canvasWidth || 800,
+      canvasHeight: config.canvasHeight || 600,
       near: 0.1,
       far: 1000,
       tileSize: 64, // 明確設定瓦片尺寸
@@ -19,10 +20,17 @@ export class PerspectiveManager {
   }
 
   toggleProjectionMode() {
+    const newMode = this.mode === '2D' ? '2.5D' : '2D';
     if (this.mode === '2D') {
       this.switchToPseudo3D();
     } else {
       this.switchTo2D();
+    }
+    
+    // 記錄日誌
+    console.log(`[視角切換] 模式變更: ${this.mode} → ${newMode}`);
+    if (visualConfig.viewMode.persistence) {
+      localStorage.setItem('viewMode', newMode);
     }
     console.log('[模式切換] 執行結果', {
       method: 'toggleProjectionMode',
@@ -55,7 +63,7 @@ export class PerspectiveManager {
    * 切換至偽3D透視投影模式
    */
   switchToPseudo3D() {
-    this.mode = 'Pseudo3D';
+    this.mode = '2.5D';
     const aspect = this.config.canvasWidth / this.config.canvasHeight;
     const fovRad = (this.config.fov * Math.PI) / 180;
 
@@ -74,7 +82,7 @@ export class PerspectiveManager {
     // 手動調整投影矩陣增加視覺透視
     mat4.translate(this.currentProjectionMatrix, this.currentProjectionMatrix,
       [0, -visualConfig.projection.perspective.scaleY * 0.2, 0]);
-    mat4.rotateZ(this.currentProjectionMatrix, this.currentProjectionMatrix, radian * 0.3);
+    mat4.rotateZ(this.currentProjectionMatrix, this.currentProjectionMatrix, radian * 0.15);
     
     console.debug('[3D投影] 最終矩陣', {
       matrix: Array.from(this.currentProjectionMatrix).map(n => n.toFixed(4)),

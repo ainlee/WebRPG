@@ -351,6 +351,7 @@ class MainScene extends Phaser.Scene {
   setupDebugTools() {
     const toggleDebugButton = document.getElementById('toggle-debug');
     const resetGameButton = document.getElementById('reset-game');
+    const toggleViewModeButton = document.getElementById('toggle-view-mode');
     const generateTunnelMazeButton = document.getElementById('generate-tunnel-maze');
     const generateRandomMazeButton = document.getElementById('generate-random-maze');
 
@@ -390,6 +391,26 @@ class MainScene extends Phaser.Scene {
         window.recreateGame && window.recreateGame();
       });
     }
+    
+    if (toggleViewModeButton) {
+      toggleViewModeButton.addEventListener('click', () => {
+        if (window.perspectiveManager) {
+          window.perspectiveManager.toggleProjectionMode();
+          const newMode = window.perspectiveManager.mode;
+          log(`視角模式切換至: ${newMode}`, 'system');
+          // 更新攝像機投影矩陣
+          // 更新玩家精靈的著色器參數
+          if (this.playerSprite && this.playerSprite.postFX) {
+            this.playerSprite.postFX.setUniform('u_projectionMatrix', window.perspectiveManager.currentProjectionMatrix);
+          }
+          // 通知所有遊戲物件更新投影
+          window.dispatchEvent(new CustomEvent('projectionChanged', {
+            detail: { matrix: window.perspectiveManager.currentProjectionMatrix }
+          }));
+          this.cameras.main.setProjectionMatrix(window.perspectiveManager.currentProjectionMatrix);
+        }
+      });
+    }
   }
 }
 
@@ -416,6 +437,11 @@ function createGameConfig() {
 function startGame() {
   const config = createGameConfig();
   initializeGame(config);
+  // 初始化視角管理系統
+  window.perspectiveManager = new PerspectiveManager({
+    canvasWidth: config.width,
+    canvasHeight: config.height
+  });
   log("Phaser 遊戲已初始化", "system");
 }
 

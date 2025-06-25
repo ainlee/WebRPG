@@ -1,7 +1,8 @@
 /**
  * 視覺效果全域設定檔
- * 版本：1.0.0
- * 更新日期：2025-06-12
+ * 版本：1.2.0
+ * 更新日期：2025-06-19
+ * 新增視角模式狀態追蹤
  */
 export const visualConfig = {
   // 3D投影設定
@@ -25,6 +26,12 @@ export const visualConfig = {
   },
 
   // 硬體加速設定
+  // 視角模式狀態
+  viewMode: {
+    current: '2D', // 2D 或 3D
+    persistence: true // 是否保存使用者選擇
+  },
+
   hardwareAcceleration: {
     /** 
      * GPU實例化繪製

@@ -1,12 +1,32 @@
 // 開發者工具最小化/展開功能
 document.addEventListener('DOMContentLoaded', function () {
+  // 初始化視角模式按鈕
+  const viewModeBtn = document.getElementById('toggle-view-mode');
+  const updateButtonText = () => {
+    const is3D = localStorage.getItem('viewMode') === '3D';
+    viewModeBtn.textContent = is3D ? '切換至2D模式' : '切換至2.5D模式';
+  };
+  
   if (!window.SHOW_DEV_TOOLS) {
     const devTools = document.getElementById('dev-tools');
     if (devTools) devTools.style.display = 'none';
     return;
   }
+  
+  // 綁定視角切換事件
+  viewModeBtn.addEventListener('click', () => {
+    const currentMode = localStorage.getItem('viewMode') || '2D';
+    const newMode = currentMode === '2D' ? '3D' : '2D';
+    localStorage.setItem('viewMode', newMode);
+    window.dispatchEvent(new CustomEvent('viewModeChanged', {
+      detail: { mode: newMode }
+    }));
+    updateButtonText();
+  });
+
   const devTools = document.getElementById('dev-tools');
   const minimizeBtn = document.getElementById('minimize-dev-tools');
+  updateButtonText(); // 初始文字設定
   if (devTools && minimizeBtn) {
     // 預設為摺疊狀態
     devTools.classList.remove('expanded');
