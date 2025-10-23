@@ -1,7 +1,8 @@
 import {
   BASE_MOVEMENT_SPEED,
   FAULT_TOLERANCE_RADIUS,
-  PATHFINDING_SETTINGS
+  PATHFINDING_SETTINGS,
+  GRID_SIZE
 } from './constants.js';
 
 export let tileSize = 48;
@@ -18,17 +19,20 @@ export function normalizePosition(player, input) {
   };
 }
 // 初始設定
-const mapSize = 64;
+const mapSize = 64; // 地圖尺寸固定為64x64網格
 export let player = {
-  x: 0,  // 初始位置會在後面設置
+  x: 0,
   y: 0,
+  cameraOffsetX: 0,  // 新增攝影機偏移量
+  cameraOffsetY: 0,
   speed: BASE_MOVEMENT_SPEED,
   direction: 'down',
   frame: 0,
-  moving: false
+  moving: false,
+  gridSize: GRID_SIZE  // 新增網格尺寸屬性
 };
-export let mapWidth = mapSize * tileSize;
-export let mapHeight = mapSize * tileSize;
+export let mapWidth = 64 * GRID_SIZE; // 64網格 x 每格尺寸
+export let mapHeight = 64 * GRID_SIZE;
 export let trees = [];
 export let path = [];
 export let keyMoveQueue = [];
@@ -36,11 +40,40 @@ export let moveProgress = 0;
 export let logMessages = [];
 
 // 初始化遊戲邏輯
-export function setupGame() {
+export function setupGame(canvas = document.querySelector('#game-canvas')) {
+  if (!canvas || !(canvas instanceof HTMLCanvasElement)) {
+    throw new Error('無效的 canvas 參數，預期 HTMLCanvasElement 實例');
+  }
+  console.log('收到的 canvas 物件:', canvas);
+  console.log('玩家初始位置:', player.x, player.y);
+  console.log('tileSize 當前值:', tileSize); // 新增 tileSize 日誌
+  if (!canvas || !canvas.width) {
+    if (canvas === null || canvas === undefined) {
+      console.error('錯誤：canvas 參數為 null 或 undefined');
+    } else {
+      console.error('無效的 canvas 物件:', {
+        type: typeof canvas,
+        prototype: Object.getPrototypeOf(canvas),
+        properties: Object.getOwnPropertyDescriptors(canvas),
+        isCanvasElement: canvas instanceof HTMLCanvasElement
+      });
+    }
+    log('畫布參考遺失，使用預設尺寸 800x600', 'error');
+    canvas = { width: 800, height: 600 };
+    log(`使用後備畫布尺寸: ${canvas.width}x${canvas.height}`, 'warning');
+  }
+  // 初始化攝影機偏移量
+  const targetX = Math.floor(canvas.width / 2 - player.x);
+  const targetY = Math.floor(canvas.height / 2 - player.y);
+  const projector = new UIProjector(this);
+  projector.updateCameraOffset(targetX, targetY);
+  log(`攝影機初始化偏移量: X=${targetX}, Y=${targetY}`, 'debug');
   // 設置玩家初始位置為中心
-  const center = Math.floor(mapSize/2);
-  player.x = (center + 0.5) * tileSize;
-  player.y = (center + 0.5) * tileSize;
+  // 設置玩家初始位置為地圖中心
+  const mapCenter = Math.floor(mapSize/2) * tileSize + tileSize/2;
+  player.x = mapCenter;
+  player.y = mapCenter;
+  log(`玩家初始位置設置為: (${mapCenter}, ${mapCenter})`, 'system');
   
   trees = [];
   path = [];
@@ -51,8 +84,15 @@ export function setupGame() {
 }
 
 // 使用基於速度和時間的移動更新
-export function updatePlayer(scene, delta, objectLayer) { // delta 是 Phaser update 循環傳遞的時間差 (毫秒)
-  if (!delta || delta <= 0) return; // 防止 delta 無效或為 0
+export function updatePlayer(scene, delta, objectLayer, canvas) {
+  if (!delta || delta <= 0) return;
+  // 即時更新攝影機偏移（加入平滑移動）
+  const cameraSmoothness = 0.1;
+  const projector = new UIProjector(this);
+  projector.updateCameraOffset(
+    (canvas.width / 2 - player.x) * cameraSmoothness * (delta / 16.67),
+    (canvas.height / 2 - player.y) * cameraSmoothness * (delta / 16.67)
+  );
 
   let target = null;
   let isAutoNav = false;

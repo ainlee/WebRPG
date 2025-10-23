@@ -1,8 +1,9 @@
 ﻿/*alert("測試 game.js 有執行");*/
 
+import { GRID_SIZE } from './constants.js';
 import { initializeGame, calculateGameSize, applyPixelScaling } from './core.js';
 import { setupInput, keysDown } from './input.js';
-import { player, updatePlayer, log, setupGame as setupGameLogic, path, keyMoveQueue, tileSize, mapWidth, mapHeight, isCollision } from './gameLogic.js';
+import { player, updatePlayer, log, setupGame, path, keyMoveQueue, tileSize, mapWidth, mapHeight, isCollision } from './gameLogic.js';
 import { generateMapLayers, getPlayerStartPos, calculateMapData } from './world.js';
 
 // 控制是否顯示開發者工具面板
@@ -54,39 +55,114 @@ class MainScene extends Phaser.Scene {
       seed: this.globalSeed + this.currentMapX * 10000 + this.currentMapY,
       difficulty: Math.min(Math.abs(this.currentMapX) + Math.abs(this.currentMapY), 10),
       isSpecial: ((Math.abs(this.currentMapX) + Math.abs(this.currentMapY)) % 5) === 0,
-      type: window.MAZE_TYPE || 'random'  // 使用全局設置的迷宮類型
+      type: window.MAZE_TYPE || 'random',
+      tileSize: tileSize,
+      debug: true, // 啟用除錯模式
+      timestamp: Date.now()
     };
     log("正在生成初始地圖數據...", "system");
-    console.log("正在生成初始地圖數據...", mapData);
+    console.log("正在生成初始地圖數據...", { ...mapData, tileSize: tileSize });
     console.log("調用 generateMapLayers 函數...");
     let ground;
+    // 確保 tileSize 已正確傳遞
+    if (!mapData.tileSize || mapData.tileSize !== tileSize) {
+      log(`地圖 tileSize 異常: ${mapData.tileSize} vs ${tileSize}`, "warning");
+      mapData.tileSize = tileSize;
+    }
+    // 重設玩家位置與狀態
+    player.x = 0;
+    player.y = 0;
+    player.moving = false;
+    path.length = 0;
+    keyMoveQueue.length = 0;
+    log('玩家狀態已重置', 'system');
     let objectLayer;
     try {
       const result = generateMapLayers(mapData);
       ground = result.ground;
       objectLayer = result.objectLayer;
-      window._objectLayer = objectLayer; // 供碰撞查詢
-      log("初始地圖數據生成完成", "system");
-      console.log("初始地圖數據生成完成", ground, objectLayer);
+      window.tileSize = mapData.tileSize;
+      console.log('tileSize 更新後:', window.tileSize, '預期值:', tileSize);
+      const canvas = this.sys.game.canvas;
+      if (!canvas) {
+        const debugInfo = {
+          config: this.sys.game.config,
+          parentElementExists: !!document.getElementById('game-container'),
+          rendererType: this.sys.game.renderer?.constructor?.name
+        };
+        log('錯誤: 無法取得 Phaser canvas 參考', 'error');
+        const safeDebugInfo = {
+          ...debugInfo,
+          game: '[Phaser.Game]',
+          renderer: debugInfo.renderer ? debugInfo.renderer.constructor.name : 'undefined'
+        };
+        console.error('Phaser 遊戲實例詳情:', JSON.stringify(safeDebugInfo, (key, value) => {
+          return value instanceof HTMLElement ? value.tagName : value;
+        }, 2));
+        return;
+      }
+      try {
+        // <% 正常流程開始 %>
+        // --- 初始化遊戲邏輯 ---
+        const debugInfo = {
+          game: this.sys.game,
+          config: this.sys.game.config,
+          parentElement: document.getElementById('game-container'),
+          renderer: this.sys.game.renderer
+        };  // 正確定義 debugInfo 物件
+
+        console.log('Phaser 除錯資訊:', debugInfo);
+        setupGame(this.sys.game.canvas); // 初始化遊戲邏輯
+        log('遊戲邏輯初始化完成', 'system');
+        return;  // 結束當前函式
+      } catch (error) {
+        console.error('遊戲初始化錯誤:', error);
+        log(`系統錯誤: ${error.message}`, 'error');
+        throw error;  // 重新拋出錯誤以便外層捕獲
+      }
+    } finally {
+      // 確保無論成功失敗都會執行的清理邏輯
+      console.log('Phaser canvas 尺寸:', this.sys.game.canvas.width, this.sys.game.canvas.height);
+      console.log('Phaser 遊戲實例配置:', this.sys.game.config);
+    }
+      // 除錯日誌已遷移至logger模組
+      window._objectLayer = objectLayer;
+      // 除錯日誌已遷移至logger模組
+      if (!canvas || !(canvas instanceof HTMLCanvasElement)) {
+        log('錯誤: 無效的 canvas 物件，類型為：' + (canvas ? (canvas.constructor ? canvas.constructor.name : typeof canvas) : 'null'), 'error');
+        return;
+      }
+      console.log('傳遞給 setupGameLogic 的有效 canvas 物件:', {
+        width: canvas.width,
+        height: canvas.height,
+        id: canvas.id,
+        constructor: canvas.constructor.name
+      });
+      // 驗證分號規則
+      if (typeof setupGame !== 'function') {
+        throw new Error('[ERROR] setupGame 函式未正確定義：' + typeof setupGame);
+      }
+      setupGame(canvas);
+      log(`初始地圖數據生成完成，tileSize: ${tileSize}`, "system");
+      console.log("初始地圖數據", { ground, objectLayer, tileSize });
     } catch (error) {
       log("地圖生成過程中發生錯誤", "error");
       console.error("地圖生成錯誤:", error);
       // 提供一個默認的地圖數據以繼續遊戲
       const size = 64;
       ground = Array(size).fill().map(() => Array(size).fill(1));
-      objectLayer = Array(size).fill().map(() => Array(size).fill(0));
+      window.objectLayer = Array(size).fill().map(() => Array(size).fill(0));
       for (let y = 10; y < 15; y++) {
         for (let x = 10; x < 15; x++) {
           objectLayer[y][x] = 2; // 石頭/障礙物
         }
       }
-      window._objectLayer = objectLayer;
+      window.objectLayer = objectLayer;
       log("使用默認地圖數據繼續遊戲", "system");
       console.log("使用默認地圖數據繼續遊戲", ground, objectLayer);
-    }
-    console.log("檢查地圖數據", ground, objectLayer);
-    log(`地圖數據 - 地板層大小: ${ground.length}x${ground[0].length}`, "debug");
-    log(`地圖數據 - 物件層大小: ${objectLayer.length}x${objectLayer[0].length}`, "debug");
+      
+    } // 新增註解明確區塊結束
+    // 已移動到try-catch區塊內
     // 檢查物件層是否有障礙物
     let obstacleCount = 0;
     for (let y = 0; y < objectLayer.length; y++) {
@@ -94,13 +170,13 @@ class MainScene extends Phaser.Scene {
         if (objectLayer[y][x] === 2) obstacleCount++;
       }
     }
-    log(`地圖數據 - 障礙物數量: ${obstacleCount}`, "debug");
+    log('地圖數據 - 障礙物數量: ' + obstacleCount, 'debug');
     
     // 設定玩家初始位置
     const center = Math.floor(64/2);
     player.x = (center + 0.5) * tileSize;
     player.y = (center + 0.5) * tileSize;
-    setupGameLogic();
+    setupGame(document.getElementById('game-canvas')); // 傳入預設 canvas 元素
     this.isWaitingForAnimComplete = false;
     this.lastLoggedKeyDirection = null;
     this.playerWasMovingByKey = false;
@@ -108,7 +184,7 @@ class MainScene extends Phaser.Scene {
 
     // 動態渲染地圖（僅渲染當前地圖）
     const mapGraphics = this.add.group();
-    const gridSize = 64;
+    const gridSize = 64; // 地圖網格數量固定為64x64
     log("開始動態渲染地圖...", "system");
     console.log("開始動態渲染地圖...", ground, objectLayer);
     // 只生成並渲染當前地圖
@@ -130,7 +206,7 @@ class MainScene extends Phaser.Scene {
     }
     log("地圖渲染完成", "system");
     console.log("地圖渲染完成");
-    log(`渲染了 ${mapGraphics.getLength()} 個地圖元素`, "debug");
+    log('渲染了 ' + mapGraphics.getLength() + ' 個地圖元素', 'debug');
 
     const startX = player.x;
     const startY = player.y;
@@ -141,7 +217,9 @@ class MainScene extends Phaser.Scene {
     this.playerSprite.setScale(scale);
     log("玩家角色縮放設定完成", "system");
 
-    this.cameras.main.setBounds(0, 0, gridSize*tileSize, gridSize*tileSize);
+    // 地圖實際尺寸為64網格 * GRID_SIZE
+    const mapPixelSize = 64 * GRID_SIZE;
+    this.cameras.main.setBounds(0, 0, mapPixelSize, mapPixelSize);
     this.cameras.main.startFollow(this.playerSprite, true, 0.1, 0.1);
     log("攝影機設定完成", "system");
 
@@ -221,7 +299,7 @@ class MainScene extends Phaser.Scene {
         {
           // 修正鍵盤移動方向的日誌記錄
           if (!this.playerWasMovingByKey || directionKeyPressed !== this.lastLoggedKeyDirection) {
-            log(`鍵盤移動 ${directionKeyPressed}`, 'move');
+            log('鍵盤移動 ' + directionKeyPressed, 'move');
             this.lastLoggedKeyDirection = directionKeyPressed;
           }
           if (directionKeyPressed) player.direction = directionKeyPressed; // 更新方向以播放正確動畫
@@ -351,7 +429,6 @@ class MainScene extends Phaser.Scene {
   setupDebugTools() {
     const toggleDebugButton = document.getElementById('toggle-debug');
     const resetGameButton = document.getElementById('reset-game');
-    const toggleViewModeButton = document.getElementById('toggle-view-mode');
     const generateTunnelMazeButton = document.getElementById('generate-tunnel-maze');
     const generateRandomMazeButton = document.getElementById('generate-random-maze');
 
@@ -360,7 +437,7 @@ class MainScene extends Phaser.Scene {
         const arcadePhysics = this.physics.world;
         arcadePhysics.drawDebug = !arcadePhysics.drawDebug;
         arcadePhysics.debugGraphic.clear();
-        log(`切換除錯模式：${arcadePhysics.drawDebug ? '開啟' : '關閉'}`, 'debug');
+        log('切換除錯模式：' + (arcadePhysics.drawDebug ? '開啟' : '關閉'), 'debug');
       });
     }
     if (resetGameButton) {
@@ -391,26 +468,6 @@ class MainScene extends Phaser.Scene {
         window.recreateGame && window.recreateGame();
       });
     }
-    
-    if (toggleViewModeButton) {
-      toggleViewModeButton.addEventListener('click', () => {
-        if (window.perspectiveManager) {
-          window.perspectiveManager.toggleProjectionMode();
-          const newMode = window.perspectiveManager.mode;
-          log(`視角模式切換至: ${newMode}`, 'system');
-          // 更新攝像機投影矩陣
-          // 更新玩家精靈的著色器參數
-          if (this.playerSprite && this.playerSprite.postFX) {
-            this.playerSprite.postFX.setUniform('u_projectionMatrix', window.perspectiveManager.currentProjectionMatrix);
-          }
-          // 通知所有遊戲物件更新投影
-          window.dispatchEvent(new CustomEvent('projectionChanged', {
-            detail: { matrix: window.perspectiveManager.currentProjectionMatrix }
-          }));
-          this.cameras.main.setProjectionMatrix(window.perspectiveManager.currentProjectionMatrix);
-        }
-      });
-    }
   }
 }
 
@@ -437,11 +494,6 @@ function createGameConfig() {
 function startGame() {
   const config = createGameConfig();
   initializeGame(config);
-  // 初始化視角管理系統
-  window.perspectiveManager = new PerspectiveManager({
-    canvasWidth: config.width,
-    canvasHeight: config.height
-  });
   log("Phaser 遊戲已初始化", "system");
 }
 

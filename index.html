@@ -10,6 +10,11 @@
     }
   }
   </script>
+  <!-- 添加Phaser预加载 -->
+  <script type="module">
+    import 'phaser';
+    console.log('Phaser预加载完成');
+  </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>WebRPG</title>
   <!-- 載入外部 CSS 樣式 -->
@@ -17,7 +22,7 @@
 </head>
 <body>
   <!-- 遊戲畫面容器，Phaser 會自動將 canvas 加入此處 -->
-  <div id="game-container" class="disable-selection"></div>
+  <div id="game-container" class="disable-selection" style="width: 100%; height: 100vh;"></div>
 
   <!-- 開發者工具視窗 -->
   <div id="dev-tools" class="expanded" role="region" aria-label="開發者工具面板">
@@ -41,7 +46,7 @@
   </div>
 
   <!-- 遊戲主程式 -->
-  <script type="module" src="scripts/game.js"></script>
+  <script type="module" src="scripts/game-init.js"></script>
   <!-- UI 控制腳本（如最小化功能） -->
   <script type="module" src="scripts/ui.js"></script>
   <script>

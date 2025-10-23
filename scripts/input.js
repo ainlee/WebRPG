@@ -1,6 +1,7 @@
 /*alert("測試 input.js 有執行");*/
 
 import { player, mapWidth, mapHeight, tileSize, trees, path, keyMoveQueue, log, isCollision, aStar } from './gameLogic.js';
+import { GRID_SIZE } from './constants.js';
 
 // 導出一個物件來追蹤按下的鍵
 export let keysDown = {};
@@ -22,7 +23,8 @@ export function setupInput(scene) {
       player.moving = false;
       const startNode = { x: player.x, y: player.y };
       const endNode = { x: targetX + tileSize / 2, y: targetY + tileSize / 2 };
-      // 使用新A*尋路
+
+// 使用新A*尋路
       const calculatedPath = aStar(startNode, endNode, objectLayer);
       if (calculatedPath && calculatedPath.length > 0) {
         path.push(...calculatedPath);

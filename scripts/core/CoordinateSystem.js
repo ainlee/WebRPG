@@ -1,6 +1,14 @@
 /**
  * 整合版座標系統核心類別
- * @class
+ * @class CoordinateSystem
+ * @property {Object} config - 座標系統配置
+ * @property {number} config.tileSize - 單個地圖方塊的像素尺寸
+ * @property {number} config.canvasWidth - 畫布寬度
+ * @property {number} config.canvasHeight - 畫布高度
+ * @property {number} config.fov - 視野角度
+ * @property {number} config.aspect - 畫面寬高比
+ * @property {number} config.near - 近裁切面
+ * @property {number} config.far - 遠裁切面
  */
 export class CoordinateSystem {
   constructor({ canvasWidth = 800, canvasHeight = 600, ...config }) {
@@ -24,8 +32,14 @@ export class CoordinateSystem {
    */
   // 新增3D投影核心方法
   project3D(x, y, z) {
+    console.log('3D投影輸入座標:', {x, y, z});
+    console.log('攝影機偏移:', window.player?.cameraOffsetX, window.player?.cameraOffsetY); // 新增日誌
     const viewMatrix = this.createViewMatrix();
     const projMatrix = this.createPerspectiveMatrix();
+    // 加入攝影機偏移補償
+    // 加入攝影機偏移補償（需同步更新 2D 投影）
+    x += window.player?.cameraOffsetX || 0;
+    y += window.player?.cameraOffsetY || 0;
     const point = this.multiplyMatrixVector(
       this.matrixMultiply(projMatrix, viewMatrix),
       [x, y, z, 1]
@@ -104,8 +118,9 @@ export class CoordinateSystem {
     const { angle, scaleY, depthFactor } = this.config;
     const radian = angle * (Math.PI / 180);
     return {
-      x: x + y * Math.cos(radian) * scaleY,
-      y: y * Math.sin(radian) * scaleY * (1 - y * depthFactor),
+      // 加入攝影機偏移補償
+      x: (x + (window.player?.cameraOffsetX || 0)) + (y + (window.player?.cameraOffsetY || 0)) * Math.cos(radian) * scaleY,
+      y: (y + (window.player?.cameraOffsetY || 0)) * Math.sin(radian) * scaleY * (1 - y * depthFactor),
       zIndex: y, // 用於深度排序
       depth: y * this.config.depthFactor
     };
@@ -123,8 +138,8 @@ export class CoordinateSystem {
     const depthScale = 1 - (worldZ * depthFactor);
     
     return {
-      x: (worldX - worldY) * this.config.tileSize * Math.cos(radian) * depthScale + (window.innerWidth / 2),
-      y: (worldX + worldY) * this.config.tileSize * Math.sin(radian) * scaleY * depthScale * 0.5 + (window.innerHeight / 2),
+      x: (worldX - worldY) * this.config.tileSize * Math.cos(radian) * depthScale,
+      y: (worldX + worldY) * this.config.tileSize * Math.sin(radian) * scaleY * depthScale * 0.5,
       zIndex: worldY + worldZ * 0.1
     };
   }
